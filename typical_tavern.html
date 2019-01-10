@@ -1,0 +1,162 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="interface.css" />
+<script src="plotly-latest.min.js"></script>
+
+
+
+</head>
+<body>
+
+<h2>Level 3 Quest: The Typical Tavern</h2>
+<hr>
+
+
+
+<p>
+<b>Square Distribution</b>
+<hr>
+Upon entering The Tavern Cellar, you will see a 5x5 grid that consists of squares you can explore. You can explore one square in a cardinal direction from a square you have already explored, with the stairs up being the first automatically revealed square.
+<p>
+There are three regions of note, labeled A, B, and C below:
+<pre>
+A x x x E
+A x x x x
+A x x x x
+B B x x x
+B B C C C
+</pre>
+<p>
+Each of the regions marked A, B, and C above will contain one of the special encounters (the corpse, the faucet, and the Baron's mansion)<br>
+You will encounter the special squares in the order above. <br>
+To complete the quest, only the corpse and faucet need to be encountered.<br>
+<p>
+
+<b>Analysis</b><hr>
+The optimal route through The Tavern Celler is to explore the edges until you hit Region B, and then to randomly explore Region B until you encounter the faucet. This means that it will take a minimum of 7 explorations to complete the quest and a maximum of 10.
+<p>
+
+There are a few additional things to note for this zone.
+<p>
+
+<b>Drunken Rat Kings</b>
+<p>
+All combat adventures consists of rats. More specifically, you will encounter either a drunken rat, a bunch of drunken rats, or a drunken rat king. The type of drunken rat is dependant upon your +Monster Level that you have.
+<p>
+What we really care about is encountering the drunken rat king as they can drop a tangle of rat tails. It seems like it's not a conditional drop, so you can pickpocket it (not verified by me) in case you lose the combat, but the tangle of rat tails has a 100% drop rate so no additional item find is necessary.
+<p>
+The reason that the tangle of rat tails is important however, is related to the level 11 quest, in which using a tangle of rat tails on a tomb rat will produce a tomb rat king which will let you drop up to 3 tomb ratchets.
+<p>
+The chance of a drunken rat king appearing is ML / 300.
+<p>
+<b>Non-Combat Adventures</b>
+<p>
+All of the non-combat adventures in this have a mechanic in which they can be "skipped", which actually makes it so that no adventures are spent on them. Doing so however, requires +20 elemental damage (Stench, Spooky, Hot, or Cold) of the appropriate type for that encounter.
+<p>
+The combat rate is likely to be 80% (lower than 85% for sure). 
+<p>
+
+<b>Strategy</b><hr>
+
+In the best case situation, you would want to complete the tavern quest in as few turns as possible. If you complete the quest too quickly, you can always just continue to adventure to get more combats (and skipping any non-combats you run into) to get the 3 tangle of rat tails that you need.
+<p>
+
+<b>Simulation</b><hr>
+
+<b>Assumptions:</b><br>
+<ul>
+<li>Combat rate of 80%</li>
+<li>Adventure Queue does not apply (no adventure.php -> no queue)</li>
+<li>Drunken Rat King adventure rate equal to ML / 300</li>
+<li>Appearance of faucet is equally likely on all 4 possible squares</li>
+</ul>
+<b>Results</b>
+<hr>
+<div class = "table_container">
+	<div id = "nc_ele_table_left" style="float:left; width: 50%">
+	<b><u>Combat Modifier & # of Elemental Skips. Expected Turns to Complete</u></b>
+	<span id = "nc_ele_table"></span>
+	</div>
+
+	<div id = "nc_ml_table_right" style="float:right; width: 50%">
+	<b><u>Combat Modifier & Monster Level. Expected # of Tangles</u></b>
+	<span id = "nc_ml_table"></span>
+	</div>
+</div>
+<p>
+<hr>
+<b>Net Turns at Selected # of Elemental Skips & Inputted value of Tangles.</b>
+<p>
+
+# of Elemental Skips:
+<select id = "ele_skips_dropdown" onchange="change_ele_skips_dropdown(this)">
+<option value = "0">0</option>
+<option value = "1">1</option>
+<option value = "2">2</option>
+<option value = "3">3</option>
+<option value = "4">4</option>
+</select>
+<br>
+
+Expected # of turns saved for each tangle (Benefit capped at 3 tangles):
+<input id = "tangle_turns_saved" type = "text" onchange="change_tangle_turns(this)" value = 1>
+<br>
+
+<span id = "net_turns_table"></span>
+<p>
+
+<b>Distribution Analysis</b>
+<p>
+
+<div id="nc_dropdown"></div>
+# of Elemental Skips:
+<select id = "ele_skips_dropdown_distribution">
+<option value = "0">0</option>
+<option value = "1">1</option>
+<option value = "2">2</option>
+<option value = "3">3</option>
+<option value = "4">4</option>
+</select>
+<br>
++Monster Level:
+<input id = "monster_level_dist" type = "text" value = 0>
+<br>
+Number of Simulations (recommend at least 100 000 but less than 10 000 000):
+<input id = "dist_num_sims" type = "text" value = 100000>
+<br>
+<button onclick = "tt_run_dist_analysis()">Run Simulations!</button>
+<br>
+<div class = "table_container">
+    <div id="dist_hist_turns" style="float:left; width: 50%; height: 400"></div>
+    <div id="dist_hist_kings" style="float:left; width: 50%; height: 400"></div>
+</div>
+
+
+<p>
+<b>Resources</b>
+<hr>
+<p>
+TBD: A list of resources that exist for both Softcore/Hardcore to push up ML and Elemental Damage.
+<br>
++NC Sources should be located in a separate page since the need for -Combat is relevant in so many other locations.
+
+<p>
+<b>Familiar Strategy</b>
+Purse Rat is a source of ML if needed +(Weight / 2) ML<br>
+Otherwise, default to your normal familiar usage strategy.
+<p>
+
+<b>References</b><hr><br>
+<a href="http://kol.coldfront.net/thekolwiki/index.php/Tavern_Cellar">Kol Wiki's Tavern Cellar page</a>
+<br>
+<a href="http://kolspading.com/forums/viewtopic.php?f=2&t=132">Kolspading: Tavern Cellar</a>
+<br>
+<!-- <script type="text/javascript" src="underscore-min.js"></script> -->
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://d3js.org/d3-array.v2.min.js"></script>
+<script type="text/javascript" src="typical_tavern.js"></script>
+<br>
+<i>Last updated on January 9, 2019</i>
+
+</body>
+</html>
