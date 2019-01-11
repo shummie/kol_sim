@@ -1,0 +1,129 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="interface.css" />
+<script src="plotly-latest.min.js"></script>
+
+
+
+</head>
+<body>
+
+<h2>Level 2 Quest: The Spooky Forest</h2>
+<hr>
+
+
+
+<p>
+<b>Quest Description</b>
+<hr>
+
+The main goal of this quest is to obtain a mosquito larva from the Spooky Forest in the non-combat adventure located here.
+<p>
+However, realistically, you will be spending additional time in this zone to prep for the Hidden City Unlock (Hidden Temple Quest). This involves the acquisition of a spooky sapling, a tree-holed coin which is then traded for a spooky temple map, and then the spooky-gro fertilizer.<br>
+Note, that the spooky-gro fertilizer can be pulled, analysis showing turns saved will be explored on this page.
+<p>
+
+All analysis on this page is going to be related to the total number of turns taken to both complete the council quest along with the parts needed for the hidden city/temple unlock.
+
+<b>Analysis</b><hr>
+Completing this quest really boils down to encountering the Arboreal Respire non-combat adventure a sufficient number of times. <p>
+1 to get the mosquito larva.<br>
+3 to get the spooky sapling, coin, and map.<br>
+1 more for the spooky gro fertilizer (separated for the analysis to determine pull savings).<br>
+<p>
+As a result, maximizing non-combat frequency is the key to speeding up this zone.
+<p>
+There are a few additional things to note for this zone.
+<p>
+
+<b>Delay</b>
+<p>
+There is a 5 turn delay (0-indexed) before the non-combat is eligible to be placed in the queue.
+<p>
+<b>Superlikely</b><p>
+There is a superlikely version of the non-combat adventure which forces the appearance of the adventure after 7 or 8 turns (equal chance) since you last encountered either version of the non-combat.
+<p>
+The combat rate is 85%.
+<p>
+
+<b>Strategy</b><hr>
+
+Running at a capped -25% Combat modifier is the main way to complete the quest as quickly as possible. <br>
+With the fact that there exists a 5 turn delay on the appearance of the non-combat adventure, utilize free fights / runaways to reduce the delay counter in this zone. <br>
+<i>Is this true? I can't remember the exact ways to burn delay anymore, do free runaways decrement the delay counter?</i>
+<p>
+
+<b>Simulation</b><hr>
+
+<b>Assumptions:</b><br>
+<ul>
+<li>Combat rate of 85%</li>
+<li>Delay of 5 turns before the NC is available. This means it will appear at the earliest on your 6th adventure in the zone.</li>
+<li>Superlikely appears after 7-8 turns with equal chance, randomly determined.</li>
+</ul>
+<b>Results</b>
+<hr>
+<div class = "table_container">
+	<div id = "nc_table_left" style="float:left; width: 50%">
+	<b><u>Combat Modifier & Expected Turns to Complete (with fertilizer)</u></b>
+	<span id = "nc_fert"></span>
+	</div>
+
+	<div id = "nc_table_left_right" style="float:right; width: 50%">
+	<b><u>Combat Modifier & Expected Turns to Complete (without fertilizer)</u></b>
+	<span id = "nc_no_fert"></span>
+	</div>
+</div>
+<p>
+<hr>
+<b>Value of spooky-gro fertilizer pull in softcore.</b>
+<p>
+<span id = "fert_pull_savings_table"></span>
+<p>
+
+<b>Distribution Analysis</b>
+<p>
+
+<div id="nc_dropdown"></div>
+Get Fertilizer?:
+<select id = "fert_flag">
+<option value = "Yes">Yes</option>
+<option value = "No">No</option>
+<br>
+Number of Simulations (recommend at least 100 000 but less than 10 000 000):
+<input id = "dist_num_sims" type = "text" value = 100000>
+<br>
+<button onclick = "spooky_forest_run_dist_analysis()">Run Simulations!</button>
+<br>
+<div id="dist_turns" style="float:left; height: 400"></div>
+
+<p>
+<b>Resources</b>
+<hr>
+<p>
+Delay burning sources?
+<br>
++NC Sources should be located in a separate page since the need for -Combat is relevant in so many other locations.
+
+<p>
+<b>Familiar Strategy</b>
+Delay burning familiars<br>
+Otherwise, default to your normal familiar usage strategy.
+<p>
+
+<b>References</b><hr><br>
+<a href="http://forums.kingdomofloathing.com/vb/showthread.php?t=183423">KoL forum thread on Spooky forest changes</a>
+<a href="http://kol.coldfront.net/thekolwiki/index.php/The_Spooky_Forest">KoL Wiki - The Spooky Forest</a>
+<br>
+<br>
+<!-- <script type="text/javascript" src="underscore-min.js"></script> -->
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://d3js.org/d3-array.v2.min.js"></script>
+
+<script type="text/javascript" src="helper_functions.js"></script>
+<script type="text/javascript" src="spooky_forest.js"></script>
+<br>
+<i>Last updated on January 10, 2019</i>
+
+</body>
+</html>
