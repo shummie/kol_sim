@@ -1,9 +1,17 @@
-
-let c_mod = -0.1; // Note, this is the COMBAT modifier rate. -10% means a +10% NC Rate, +5% means a +5% Combat rate.
+let p = new Player();
+p.combat_mod = -0.1;
 
 // Create zone object
-
 let spooky_forest = new Zone("spooky forest", 0.85);
+spooky_forest.reset = function() {
+    this.turn_count = 0;
+    this.quest_marker = 0;
+
+    this.cq = [];
+    this.ncq = [];
+
+    this.turns_since_nc = 0;
+}
 
 // Create adventures
 
@@ -27,8 +35,6 @@ arboreal_respite.do = function(zone, player) {
 }
 // SUPERLIKELY ADVENTURES
 let arboreal_respite_sl = new Encounter("Arboreal Respite", Encounter_Type.SUPERLIKELY);
-arboreal_respite_sl.chance = 1;
-arboreal_respite_sl.noticesnc = false;
 var condition_arboreal_respite_sl = {
     delay: -1,
     evaulate : function(zone, player) {
@@ -48,7 +54,6 @@ var condition_arboreal_respite_sl = {
         return true;
     },
 }
-spooky_forest.turns_since_nc = 0;
 arboreal_respite_sl.condition = condition_arboreal_respite_sl;
 arboreal_respite_sl.do = function(zone, player) {
     zone.turns_since_nc = 0;
@@ -59,6 +64,7 @@ arboreal_respite_sl.do = function(zone, player) {
 // add encounters to zone.
 // might be easier to add the zones in the encounter constructor function, but there are instances where monsters can span multiple zones...
 spooky_forest.add_encounters([spooky_mummy, bar, spooky_vampire, triffid, warwelf, wolfman, arboreal_respite, arboreal_respite_sl]);
+
 
 
 
