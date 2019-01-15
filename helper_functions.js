@@ -40,6 +40,13 @@ function get_min(a){
 	return Math.min(...a.map(e => Array.isArray(e) ? get_min(e) : e));
 }
 
+function shuffle_array(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
 // FUNCTIONS TO CREATE HTML TABLES /////////////
 
 function create_table(tdata, trow = [], tcolumn = [], id_name = "", reverse_bg = false) {
