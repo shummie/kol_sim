@@ -24,7 +24,7 @@ Note, that the spooky-gro fertilizer can be pulled, analysis showing turns saved
 <p>
 
 All analysis on this page is going to be related to the total number of turns taken to both complete the council quest along with the parts needed for the hidden city/temple unlock.
-
+<p>
 <b>Analysis</b><hr>
 Completing this quest really boils down to encountering the Arboreal Respire non-combat adventure a sufficient number of times. <p>
 1 to get the mosquito larva.<br>
@@ -76,10 +76,6 @@ With the fact that there exists a 5 turn delay on the appearance of the non-comb
 </div>
 <p>
 <hr>
-<b>.</b>
-<p>
-<span id = "fert_pull_savings_table"></span>
-<p>
 
 <b>Distribution Analysis</b>
 <p>
@@ -89,13 +85,14 @@ Get Fertilizer?:
 <select id = "fert_flag">
 <option value = "Yes">Yes</option>
 <option value = "No">No</option>
+</select>
 <br>
-Number of Simulations (recommend at least 100 000 but less than 10 000 000):
+Number of Simulations (recommend at least 100 000 but less than 1 000 000):
 <input id = "dist_num_sims" type = "text" value = 100000>
 <br>
-<button onclick = "spooky_forest_run_dist_analysis()">Run Simulations!</button>
+<button onclick = "sf_run_dist_analysis()">Run Simulations!</button>
 <br>
-<div id="dist_turns" style="float:left; height: 400"></div>
+<div id="dist_hist_turns" style="float:left; height: 400"></div>
 
 <p>
 <b>Resources</b>
@@ -107,6 +104,8 @@ Delay burning sources?
 
 <p>
 <b>Familiar Strategy</b>
+<br>
+
 Delay burning familiars<br>
 Otherwise, default to your normal familiar usage strategy.
 <p>
@@ -122,7 +121,7 @@ Otherwise, default to your normal familiar usage strategy.
 
 <script type="text/javascript" src="helper_functions.js"></script>
 <script type="text/javascript" src="adventure.js"></script>
-<!-- <script type="text/javascript" src="spooky_forest.js"></script> -->
+<script type="text/javascript" src="spooky_forest.js"></script>
 <br>
 <i>Last updated on January 10, 2019</i>
 

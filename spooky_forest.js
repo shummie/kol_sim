@@ -1,4 +1,4 @@
-let number_simulations = 1000;
+let number_simulations = 100000;
 
 let p = new Player();
 p.combat_mod = -0.1;
@@ -40,7 +40,7 @@ let arboreal_respite_sl = new Encounter("Arboreal Respite", Encounter_Type.SUPER
 var condition_arboreal_respite_sl = {
     delay: -1,
     evaluate : function(zone, player) {
-        if (this.delay == -1) {
+        if (zone.turn_count == 0) {
             // initialize
             if (xrand.next() % 2 == 0) {
                 this.delay = 8;
@@ -193,10 +193,10 @@ function sim_sf_nc(num_trials = number_simulations) {
 
     create_table(avg_turn_array, row_names, col_names, "sf_nc_table");
 	
-	col_names = [" "];	
+	col_names = ["Combat_Mod", "Turns Saved"];	
 	row_names = [];
 	for (let i = 0; i < avg_turn_array.length; i += 1) {		
-		avg_pull_fert_savings[i][0] = (avg_turn_array[i][1] - avg_turn_array[i][0]);		
+		avg_pull_fert_savings[i][0] = Math.round(100 * (avg_turn_array[i][1] - avg_turn_array[i][0])) / 100;		
 	}
 	for (let i = -0.25; i <= 0.25; i += 0.05) {				
 		row_names.push(Math.round(i * 100) + "%");
@@ -206,87 +206,37 @@ function sim_sf_nc(num_trials = number_simulations) {
 }
 
 
-sim_sf_nc(ns);
-
-
-
-
-let ele_skips = Number(document.getElementById("ele_skips_dropdown").value);
-let tangle_turns = Number(document.getElementById("tangle_turns_saved").value);
-let net_turns_array = new Array(11).fill(0).map(() => new Array(ml_num_steps).fill(0));
-update_net_turns_saved();
-
-function change_ele_skips_dropdown(select) {
-	ele_skips = select.value;
-	update_net_turns_saved();
-}
-
-function change_tangle_turns(select) {
-	tangle_turns = Number(document.getElementById("tangle_turns_saved").value);
-	update_net_turns_saved();
-}
-
-
-function update_net_turns_saved() {
-	// Take the NC by ML table and convert to turns saved and then add to all columns, the value of the selected # of elemental skips.
-
-	for (let i = 0; i < avg_king_array_capped.length; ++i) {
-		for (let j = 0; j < avg_king_array_capped[i].length; ++j) {
-			// Convert to turns saved.
-			net_turns_array[i][j] = -tangle_turns * avg_king_array_capped[i][j];
-
-			// Add in turns taken at selected elemental skip level.
-			net_turns_array[i][j] += avg_turn_array[i][ele_skips];
-
-			net_turns_array[i][j] = Math.round(net_turns_array[i][j]*100)/100;
-		}
-	}
-
-	let col_names = [];
-	col_names.push("");
-	for (let i = 0; i <= 300; i += ml_step) {
-		col_names.push(i);
-	}
-
-	let row_names = [];
-	for (let i = -0.25; i <= 0.25; i += 0.05) {
-		row_names.push(Math.round(i * 100) + "%");
-	}
-	create_table(net_turns_array, row_names, col_names, "net_turns_table");
-}
-
-
+sim_sf_nc(number_simulations);
 
 // Populate a dropdown programmatically...
 let ncdd_html = "Combat modifier: <select id = 'nc_dropdown_value'>";
 for (let i = -0.25; i <= 0.25; i += 0.05) {
-
 	let i2 = Math.round(i * 100) / 100;
 	let i3 = Math.round(i*100) + "%";
-
-
 	ncdd_html += "<option value = " + i2 + ">" + i3 + "</option>";
-
 }
-
 ncdd_html += "</select>";
 document.getElementById("nc_dropdown").innerHTML = ncdd_html;
 
-
-function tt_run_dist_analysis() {
+function sf_run_dist_analysis() {
 
 	let t0 = performance.now();
 
 	// Get inputted values
-	c_mod = Number(document.getElementById("nc_dropdown_value").value);
-	ml_mod = Number(document.getElementById("monster_level_dist").value);
-	num_elemental_skips = Number(document.getElementById("ele_skips_dropdown_distribution").value);
+	p.combat_mod = Number(document.getElementById("nc_dropdown_value").value);
 	let nt = Number(document.getElementById("dist_num_sims").value);
+	let fert = document.getElementById("fert_flag").value;
 
-	simulate_tt(nt);
+	simulate_spooky_forest(nt);
 
-    // create a frequency chart
-    let turn_freq_map = d3.rollup(values_turns, v=>v.length, d=>d);
+	// create a frequency chart
+	let vt;
+	if (fert == "Yes") {
+		vt = values_turns_fert;
+	} else {
+		vt = values_turns;
+	}
+    let turn_freq_map = d3.rollup(vt, v=>v.length, d=>d);
 
     let sorted_map = new Map(Array.from(turn_freq_map).sort((a, b) => {return b[0] - a[0];}));
     let turn_freq_x = [...sorted_map.keys()];
@@ -301,7 +251,7 @@ function tt_run_dist_analysis() {
     turn_freq_y.reduce(function(a,b,i) { return turn_freq_cumulative_y[i] = a+b; },0);
 
 	let trace1 = {
-		x: values_turns,
+		x: vt,
 		type: 'histogram',
 		histnorm: 'probability',
         name: 'Probability',
@@ -320,44 +270,7 @@ function tt_run_dist_analysis() {
     }
 	Plotly.newPlot('dist_hist_turns', data_turns, layout_turns);
 
-    // create a frequency chart
-    let kings_freq_map = d3.rollup(values_kings, v=>v.length, d=>d);
-
-    let sorted_map_k = new Map(Array.from(kings_freq_map).sort((a, b) => {return a[0] - b[0];}));
-    let king_freq_x = [...sorted_map_k.keys()];
-    let king_freq_y = [...sorted_map_k.values()];
-
-    // calculate freq as a %.
-    for (let i = 0; i < king_freq_y.length; ++i) {
-        king_freq_y[i] = king_freq_y[i] / nt;
-    }
-
-    let king_freq_cumulative_y = [];
-    king_freq_y.reduce(function(a,b,i) { return king_freq_cumulative_y[i] = a+b; },0);
-
-    let trace1k = {
-        x: values_kings,
-        type: 'histogram',
-        histnorm: 'probability',
-        name: 'Probability',
-    };
-    let trace2k = {
-        x: king_freq_x,
-        y: king_freq_cumulative_y,
-        name: 'CDF',
-        // mode: 'lines',
-        // histfunc: 'count',
-        // histnorm: 'probability',
-    }
-    let data_k = [trace1k, trace2k];
-    let layout_k = {
-        title: 'Distribution of rat kings encountered',
-    }
-    Plotly.newPlot('dist_hist_kings', data_k, layout_k);
-
-
-
 	let t1 = performance.now();
 
-	console.log("tt_run_dist_analysis @ " + nt + " took " + (t1 - t0) + " ms.");
+	console.log("sf_run_dist_analysis @ " + nt + " took " + (t1 - t0) + " ms.");
 }
