@@ -1,38 +1,5 @@
-// derived from https://github.com/davidbau/xsrand/blob/master/xor128.js
-function Xor128(seed) {
-    let me = this;
-
-    // set up generator function
-    me.next = function() {
-        let t = me.x ^ (me.x << 11);
-        me.x = me.y;
-        me.y = me.z;
-        me.z = me.w;
-        return me.w ^= (me.w >> 19) ^ t ^ (t >> 8);
-    };
-
-    me.next_uniform = function() {
-        return (me.next() % 10000) / 10000;
-    }
-
-    function init(me, seed) {
-        me.x = seed;
-        me.y = 0;
-        me.z = 0;
-        me.w = 0;
-
-        // Discard an initial batch of 64 values.
-        for (let k = 64; k > 0; --k) {
-            me.next();
-        }
-    }
-
-    init(me, seed);
-}
-
-var xrand = new Xor128((new Date).getTime());
-
-
+let number_simulations = 100000;
+let ml_step = 25;
 // Note, the typical tavern's code is actually a bit of a hack.
 // While assumptions are made about using the adventure queue, managing what combats actually appear is tricky to fit into the current framework of zones since the probability of the type of rat appearing is dependant upon ML. As such, we just basic simulation to figure out combats.
 
@@ -42,7 +9,6 @@ var xrand = new Xor128((new Date).getTime());
 let c_mod = -0.1; // Note, this is the COMBAT modifier rate. -10% means a +10% NC Rate, +5% means a +5% Combat rate.
 let ml_mod = 50;
 let num_elemental_skips = 1;
-
 
 class tt_sim {
 
@@ -156,7 +122,7 @@ let tt_nc_ele_map = new Map();
 let avg_turn_array = new Array(11).fill(0).map(() => new Array(5).fill(0));
 
 
-function sim_tt_nc_elements(num_trials = 1000) {
+function sim_tt_nc_elements(num_trials = number_simulations) {
     // Calculate the distribution for # of turns that it takes to complete the quest at varying levels of NC and elemental damage.
 
 	let t0 = performance.now();
@@ -216,12 +182,11 @@ function sim_tt_nc_elements(num_trials = 1000) {
 
 let tt_nc_ml_map = new Map();
 let tt_nc_ml_map_capped = new Map();
-let ml_step = 25;
 let ml_num_steps = Math.ceil(300 / ml_step);
 let avg_king_array = new Array(11).fill(0).map(() => new Array(ml_num_steps).fill(0));
 let avg_king_array_capped = new Array(11).fill(0).map(() => new Array(ml_num_steps).fill(0));
 
-function sim_tt_nc_ml(num_trials = 1000) {
+function sim_tt_nc_ml(num_trials = number_simulations) {
     // Calculate the distribution for # of turns that it takes to complete the quest at varying levels of NC and elemental damage.
 
 	let t0 = performance.now();
@@ -376,18 +341,8 @@ function create_table(tdata, trow = [], tcolumn = [], id_name = "", reverse_bg =
 	document.getElementById(id_name).innerHTML = h;
 }
 
-function get_max(a){
-  return Math.max(...a.map(e => Array.isArray(e) ? get_max(e) : e));
-}
-
-function get_min(a){
-  return Math.min(...a.map(e => Array.isArray(e) ? get_min(e) : e));
-}
-
-
-let ns = 1000;
-sim_tt_nc_elements(ns);
-sim_tt_nc_ml(ns);
+sim_tt_nc_elements(number_simulations);
+sim_tt_nc_ml(number_simulations);
 let ele_skips = Number(document.getElementById("ele_skips_dropdown").value);
 let tangle_turns = Number(document.getElementById("tangle_turns_saved").value);
 let net_turns_array = new Array(11).fill(0).map(() => new Array(ml_num_steps).fill(0));
