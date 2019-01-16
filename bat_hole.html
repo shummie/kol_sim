@@ -38,58 +38,74 @@ The screambat is a superlikely combat encounter that appears every 7 turns (8 fo
 
 <b>Strategy</b><hr>
 
-There are a myriad of ways to complete this quest. <br>
+There are a myriad of ways to complete this quest. <p>
+Having as much +item drop is the key to getting sonars quickly. +100% is needed to cap the enchanted bean drop in the beanbat chamber.<p>
+You can clover at guano junction to get 2 sonar-in-a-biscuit.<p>
+If farming sonars, the batrat has the highest zone drop rate of 15%<p>
+You can yellow ray the beanbat to get both the enchanted bean and the sonar<p>
 
-The following will be analyzed for this zone:
-<ul>
-    <li>Adventure normally. Get bean, then head to ratbat for sonar</li>
-    <li>Clover for 2 sonars, get bean, then head to ratbat for sonar</li>
-</ul>
+By using a clover, and a yellow ray, you can open up the boss bat chamber in 2 turns. Whether this is a good use of resources is up to you, but the analysis below can help inform that decision.<br>
 
-
-
-
-The first subtask of this zone is to get access to the beanbat chamber. The enchanted bean will need to be obtained and is easy to cap with +100% item find.<br>
-
-The following will be analyzed for this first subtask:
-<ul>
-<li>Clover for 2 sonars</li>
-<li>Adventure until chamber is open</li>
-</ul>
-
-Running at a capped -25% Combat modifier is the main way to complete the quest as quickly as possible. <br>
-With the fact that there exists a 5 turn delay on the appearance of the non-combat adventure, utilize free fights / runaways to reduce the delay counter in this zone. <br>
-<i>Is this true? I can't remember the exact ways to burn delay anymore, do free runaways decrement the delay counter?</i>
 <p>
 
 <b>Simulation</b><hr>
 
 <b>Assumptions:</b><br>
+
+The simulation takes the following steps to complete the quest:<br>
+<ol>
+	<li>
+		Is the beanbat chamber open?
+		<ol>
+			<li>We have an enchanted bean</li>
+			<ul>
+			<li>With a ten-leaf clover, clover at guano junction.</li>
+			<li>Otherwise, adventure at batrat burrow</li>
+			</ul>
+			<li>No enchanted bean</li>
+			<ul>
+			<li>Yellow Ray available? YR a beanbat</li>
+			<li>No YR? Adventure at beanbat chamber</li>
+			</ul>
+		</ol>
+	</li>
+	<li>
+		Is the batrat burrow open?
+		<ul><li>Adventure at batrat burrow</li></ul>
+	</li>
+	<li>
+		Only guano junction is open.
+		<ul>
+		<li>With a ten-leaf clover, clover at guano junction</li>
+		<li>Otherwise, adventure at guano junction</li>
+		</ul>
+	</li>
+</ol>
+
 <ul>
-<li>Combat rate of 85%</li>
-<li>Delay of 5 turns before the NC is available. This means it will appear at the earliest on your 6th adventure in the zone.</li>
-<li>Superlikely appears after 7-8 turns with equal chance, randomly determined.</li>
+<li>Screambats appear on the 8th turn, and then every 7 turns thereafter</li>
+<li>4 beefy bodyguard bats are fought before the boss bat appears within the next 3 turns. Therefore, 5-7 turns uniformally distributed to complete the Boss Bat Lair</li>
 </ul>
+<br>
+<b>Scenarios</b>
+<hr><br>
+
+
+
+
+<br>
 <b>Results</b>
 <hr>
-<div class = "table_container">
-    <div id = "nc_table_left" style="float:left; width: 50%">
-    <b><u>Combat Modifier & Expected Turns to Complete)</u></b>
-    <span id = "sf_nc_table"></span>
-    </div>
+<b><u>Item Drop% & Expected Turns to Complete by Scenario)</u></b>
+<span id = "if_turn_table"></span>
 
-    <div id = "nc_table_left_right" style="float:right; width: 50%">
-    <b><u>Value of spooky-gro fertilizer pull in softcore</u></b>
-    <span id = "sf_fert_value"></span>
-    </div>
-</div>
 <p>
 <hr>
 
 <b>Distribution Analysis</b>
 <p>
 
-<div id="nc_dropdown"></div>
+<div id="item_dropdown"></div>
 Get Fertilizer?:
 <select id = "fert_flag">
 <option value = "Yes">Yes</option>
@@ -115,18 +131,17 @@ In-run Stench Resistance
 <li>a bum cheet or asshat from the Sleazy Back Alley</li>
 <li>Knob Goblin harem veil from the Harem</li>
 </ul>
-
+<p>
+Standard sources of +item find may be useful as well
 <p>
 <b>Familiar Strategy</b>
 <br>
-
-Delay burning familiars<br>
-Otherwise, default to your normal familiar usage strategy.
+Fairy type familiar to help cap sonars<br>
+May want to use a lep familiar at the Boss Bat for extra meat.
 <p>
 
 <b>References</b><hr><br>
-<a href="http://forums.kingdomofloathing.com/vb/showthread.php?t=183423">KoL forum thread on Spooky forest changes</a><br>
-<a href="http://kol.coldfront.net/thekolwiki/index.php/The_Spooky_Forest">KoL Wiki - The Spooky Forest</a>
+<a href="http://kol.coldfront.net/thekolwiki/index.php/The_Bat_Hole">KoL Wiki - The Bat Hole</a>
 <br>
 <br>
 <!-- <script type="text/javascript" src="underscore-min.js"></script> -->
@@ -135,7 +150,7 @@ Otherwise, default to your normal familiar usage strategy.
 
 <script type="text/javascript" src="helper_functions.js"></script>
 <script type="text/javascript" src="adventure.js"></script>
-<script type="text/javascript" src="spooky_forest.js"></script>
+<script type="text/javascript" src="bat_hole.js"></script>
 <br>
 <i>Last updated on January 14, 2019</i>
 
