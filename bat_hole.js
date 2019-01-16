@@ -123,19 +123,19 @@ boss_bat_lair.reset();
 // Runs a full simulation.
 
 var run_sim = function() {
-	
+
 	// Runs through a single simulation of the bat hole.
 	reset_bat_hole();
 	let quest_turns = 0;
-	
+
 	// Note, this assumes that the player's inventory has been reset already. We don't reset in here because we may want to start the player off with some items.
 	// This is a hack.
 	// The boss bat zone doesn't really matter. It will always be completed within 5-7 turns.
 	quest_turns += 5 + xrand.next() % 3;
-	
+
 	while (zones_opened < 3 || (!("enchanted bean" in p.inventory))) {
 
-		
+
 		// Do we want to add in yellow ray?
 		if (zones_opened >= 2) {
 			// Beanbat chamber is open. Do we have a bean?
@@ -174,9 +174,9 @@ var run_sim = function() {
 				zones_opened += 2;
 			} else {
 				guano_junction.pick_adventure(p);
-			}			
+			}
 		}
-		
+
 		// Use any sonars we have found.
 		// We could be fancy and implement a "use" function on items. but right now, keep it fast.
 		if ("sonar-in-a-biscuit" in p.inventory) {
@@ -185,9 +185,9 @@ var run_sim = function() {
 		}
 	}
 	quest_turns += guano_junction.turn_count + batrat_burrow.turn_count + beanbat_chamber.turn_count;
-	
+
 	return quest_turns;
-	
+
 };
 
 
@@ -205,3 +205,78 @@ p.add_item_to_inventory("ten-leaf clover", 1);
 p.add_item_to_inventory("yellow ray", 1);
 p.item_drop = 1;
 run_sim();
+
+
+// Scenario 1:
+let basecase = {
+    name: "No resources",
+    reset: function() {
+        p.reset();
+    },
+}
+
+// Scenario 2:
+let clover_1 = {
+    name: "One clover",
+    reset: function() {
+        p.reset();
+        p.add_item_to_inventory("ten-leaf clover", 1);
+    },
+}
+
+// Scenario 3:
+let clover_2 = {
+    name: "Two clovers",
+    reset: function() {
+        p.reset();
+        p.add_item_to_inventory("ten-leaf clover", 2);
+    },
+}
+
+// Scenario 4:
+let clover_YR = {
+    name: "Clover + YR",
+    reset: function() {
+        p.reset();
+        p.add_item_to_inventory("ten-leaf clover", 1);
+        p.add_item_to_inventory("yellow ray", 1);
+    },
+}
+
+// Scenario 5:
+let yellow_ray = {
+    name: "Yellow Ray",
+    reset: function() {
+        p.reset();
+        p.add_item_to_inventory("yellow ray", 1);
+    },
+}
+
+let scenarios = [basecase, clover_1, clover_2, clover_YR, yellow_ray];
+
+
+let values_turns = [];
+let total_turns = 0;
+let sim_number = 0;
+
+var simulate_bat_hole = function(num_trials = number_simulations, scenario = basecase) {
+
+    // initialize variables for storage
+
+    values_turns = [];
+    total_turns = 0;
+    sim_number = 0;
+
+    let sim_total_turns = 0;
+
+    while(sim_number < num_trials) {
+        sim_total_turns = 0;
+        scenario.reset();
+        sim_total_turns = run_sim();
+        total_turns += sim_total_turns;
+        values_turns.push(total_turns);
+        sim_number += 1;
+    }
+
+    console.log("Avg turns to complete (" + scenario.name + "): " + prettify(total_turns / num_trials));
+};

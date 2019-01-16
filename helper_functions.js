@@ -47,6 +47,10 @@ function shuffle_array(array) {
     }
 }
 
+function prettify(num, decimals = 2) {
+    let f = Math.pow(10, decimals);
+    return Math.round(f * num) / f;
+}
 // FUNCTIONS TO CREATE HTML TABLES /////////////
 
 function create_table(tdata, trow = [], tcolumn = [], id_name = "", reverse_bg = false) {
