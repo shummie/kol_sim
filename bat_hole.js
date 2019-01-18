@@ -190,23 +190,6 @@ var run_sim = function() {
 
 };
 
-
-p.reset();
-p.item_drop = 1;
-run_sim();
-
-p.reset();
-p.add_item_to_inventory("ten-leaf clover", 1);
-p.item_drop = 1;
-run_sim();
-
-p.reset();
-p.add_item_to_inventory("ten-leaf clover", 1);
-p.add_item_to_inventory("yellow ray", 1);
-p.item_drop = 1;
-run_sim();
-
-
 // Scenario 1:
 let basecase = {
     name: "No resources",
@@ -274,9 +257,53 @@ var simulate_bat_hole = function(num_trials = number_simulations, scenario = bas
         scenario.reset();
         sim_total_turns = run_sim();
         total_turns += sim_total_turns;
-        values_turns.push(total_turns);
+        values_turns.push(sim_total_turns);
         sim_number += 1;
     }
 
-    console.log("Avg turns to complete (" + scenario.name + "): " + prettify(total_turns / num_trials));
+    // console.log("Avg turns to complete (" + scenario.name + "): " + prettify(total_turns / num_trials));
 };
+
+let item_max = 7;
+let item_step = 0.5;
+let num_item_steps = Math.ceil(item_max / item_step);
+let avg_turn_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(scenarios.length).fill(0));
+let bh_map = new Map();
+
+var simulate_bh_table = function(num_trials = number_simulations) {
+	// Simulates for each scenario, and item drop %, the average number of turns to complete the bat hole quest.
+	
+	let t0 = performance.now();
+	for (let si = 0; si < scenarios.length; si++) {
+		let s = scenarios[si];
+		for (let iindex = 0; iindex <= num_item_steps; iindex++) {
+			p.item_drop = iindex * item_step;
+			simulate_bat_hole(num_trials, s);
+			// Do we even need to keep this map? 
+			// bh_map.set([iindex, s.name]);
+			// Calculate avg turns taken.
+			let temp_sum = 0;
+			for (let i = 0; i < num_trials; ++i) {
+				temp_sum += values_turns[i];
+			}
+			avg_turn_array[iindex][si] = prettify(temp_sum / num_trials);
+		}
+	}
+
+	let t1 = performance.now();
+
+	console.log("sim_bh_table @ " + num_trials + " took " + (t1 - t0) + " ms.");
+
+	let col_names = [];
+	col_names.push("");
+	for (let i = 0; i < scenarios.length; ++i) {
+		col_names.push(scenarios[i].name);
+	}
+
+	let row_names = [];
+	for (let i = 0; i <= num_item_steps; ++i) {
+		row_names.push(Math.round(i * item_step * 100) + "%");
+	}
+
+	create_table(avg_turn_array, row_names, col_names, "if_turn_table");
+}
