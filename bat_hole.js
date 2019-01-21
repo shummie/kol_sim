@@ -1,4 +1,4 @@
-let number_simulations = 1000;
+let number_simulations = 30000;
 
 let p = new Player();
 
@@ -268,6 +268,7 @@ let item_max = 7;
 let item_step = 0.5;
 let num_item_steps = Math.ceil(item_max / item_step);
 let avg_turn_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(scenarios.length).fill(0));
+let avg_turn_savings_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(4).fill(0));
 let bh_map = new Map();
 
 var simulate_bh_table = function(num_trials = number_simulations) {
@@ -306,4 +307,124 @@ var simulate_bh_table = function(num_trials = number_simulations) {
 	}
 
 	create_table(avg_turn_array, row_names, col_names, "if_turn_table");
+	
+	
+	// Create resource savings table
+	
+	col_names = ["Item Drop", "First clover", "Second clover", "YR (1 clover)", "YR (no clovers)"];
+	
+	// Note, if we add more scenarios, need to manually adjust this since we're comparing different columns.
+	let base_scenario = 0;
+	let compare_scenario = 0;
+	let savings_index = 0;
+	
+	// compare first clover to base.
+	compare_scenario = 1;
+	for (let i = 0; i < avg_turn_array.length; i += 1) {		
+		avg_turn_savings_array[i][savings_index] = Math.round(100 * (avg_turn_array[i][base_scenario] - avg_turn_array[i][compare_scenario])) / 100;		
+	}
+	savings_index += 1;
+	
+	// compare second clover to first.
+	base_scenario = 1;
+	compare_scenario = 2;
+	for (let i = 0; i < avg_turn_array.length; i += 1) {		
+		avg_turn_savings_array[i][savings_index] = Math.round(100 * (avg_turn_array[i][base_scenario] - avg_turn_array[i][compare_scenario])) / 100;		
+	}
+	savings_index += 1;
+	
+	// compare YR to 1 clover.
+	base_scenario = 1;
+	compare_scenario = 3;
+	for (let i = 0; i < avg_turn_array.length; i += 1) {		
+		avg_turn_savings_array[i][savings_index] = Math.round(100 * (avg_turn_array[i][base_scenario] - avg_turn_array[i][compare_scenario])) / 100;		
+	}
+	savings_index += 1;
+	
+	// compare YR to base.
+	base_scenario = 0;
+	compare_scenario = 4;
+	for (let i = 0; i < avg_turn_array.length; i += 1) {		
+		avg_turn_savings_array[i][savings_index] = Math.round(100 * (avg_turn_array[i][base_scenario] - avg_turn_array[i][compare_scenario])) / 100;		
+	}
+	savings_index += 1;
+	
+	create_table(avg_turn_savings_array, row_names, col_names, "resource_value_table");	
+}
+
+simulate_bh_table(number_simulations);
+
+
+// Populate a dropdown programmatically...
+let iddd_html = "Item drop modifier: <select id = 'id_dropdown_value'>";
+for (let i = 0; i <= item_max; i += item_step) {
+	let i2 = Math.round(i * 100) / 100;
+	let i3 = Math.round(i*100) + "%";
+	iddd_html += "<option value = " + i2 + ">" + i3 + "</option>";
+}
+iddd_html += "</select>";
+document.getElementById("id_dropdown").innerHTML = iddd_html;
+
+
+function bh_run_dist_analysis() {
+
+	let t0 = performance.now();
+
+	// Get inputted values
+	p.item_drop = Number(document.getElementById("id_dropdown_value").value);
+	let nt = Number(document.getElementById("dist_num_sims").value);
+	let use_yr = document.getElementById("use_yr").value;
+	let num_clovers = document.getElementById("num_clovers").value;
+	
+	let custom_scenario = {
+		name: "Custom Scenario",
+		reset: function() {
+			p.reset();
+			if (use_yr == "Yes") {
+				p.add_item_to_inventory("yellow ray", 1);
+			}
+			p.add_item_to_inventory("ten-leaf clover", num_clovers);
+		},
+	}
+
+	simulate_bat_hole(nt, custom_scenario);
+
+	// create a frequency chart
+    let turn_freq_map = d3.rollup(values_turns, v=>v.length, d=>d);
+
+    let sorted_map = new Map(Array.from(turn_freq_map).sort((a, b) => {return b[0] - a[0];}));
+    let turn_freq_x = [...sorted_map.keys()];
+    let turn_freq_y = [...sorted_map.values()];
+
+    // calculate freq as a %.
+    for (let i = 0; i < turn_freq_y.length; ++i) {
+        turn_freq_y[i] = turn_freq_y[i] / nt;
+    }
+
+    let turn_freq_cumulative_y = [];
+    turn_freq_y.reduce(function(a,b,i) { return turn_freq_cumulative_y[i] = a+b; },0);
+
+	let trace1 = {
+		x: values_turns,
+		type: 'histogram',
+		histnorm: 'probability',
+        name: 'Probability',
+	};
+	let trace2 = {
+		x: turn_freq_x,
+        y: turn_freq_cumulative_y,
+        name: 'CDF',
+		// mode: 'lines',
+		// histfunc: 'count',
+		// histnorm: 'probability',
+	}
+	let data_turns = [trace1, trace2];
+    let layout_turns = {
+        title: 'Distribution of turns taken to complete zone',
+    }
+	Plotly.newPlot('dist_hist_turns', data_turns, layout_turns);
+
+	let t1 = performance.now();
+
+	console.log("sf_run_dist_analysis @ " + nt + " took " + (t1 - t0) + " ms.");
 }
