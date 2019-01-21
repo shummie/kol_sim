@@ -4,6 +4,12 @@ var Encounter_Type = {
     SUPERLIKELY: 2,
 };
 
+var Drop_Type = {
+	NORMAL: 0,
+	PPONLY: 1,
+	CONDITIONAL: 2,
+}
+
 
 var condition_delay = {
     delay : 0,
@@ -19,21 +25,21 @@ var condition_none = {
     evaluate : function(zone, player) { return true; }
 }
 
+var item_condition_none = {
+    evaluate : function(player) { return true; }
+}
 
 class Item {
-	constructor(name, droprate, droptype, keyword) {
+	constructor(name, droprate, type = Drop_Type.NORMAL, keywords = []) {
 		this.name = name;
 		this.droprate = droprate;
-		this.droptype = droptype;	// 0: normal, 1: pponly, 2: conditional
-		this.keyword = keyword;
-	}
-
-	check_condition() {
-		return true;
+		this.type = type;	// 0: normal, 1: pponly, 2: conditional
+		this.condition = item_condition_none;
+		this.keywords = [];
 	}
 
 	roll_for_drop(bonus_drop_rate) {
-		if (this.droptype != 2) {
+		if (this.type != Drop_Type.CONDITIONAL) {
 			return xrand.next_uniform() < (this.droprate * (1 + bonus_drop_rate));
 		} else {
 			if (this.check_condition()) {
@@ -49,12 +55,30 @@ class Player {
 	// Contains all the player stats to modify a zone for simulation purposes.
 
 	constructor() {
-		this.item_find = 0;
+		this.item_drop = 0;
 		this.monster_level = 0;
 		this.combat_mod = 0;
 		this.meat_drop = 0;
 		this.init = 0;
+		this.inventory = {};
 	}
+	
+	reset() {
+		this.inventory = {};
+	}
+	
+	add_item_to_inventory(name, count = 1) {
+		if (!(name in this.inventory)) {
+			if (count > 0) {
+				this.inventory[name] = count;
+			}
+		} else if (this.inventory[name] + count > 0) {
+			this.inventory[name] += count;
+		} else {
+			delete this.inventory[name];
+		}
+	}
+	
 }
 
 
@@ -71,17 +95,120 @@ class Encounter {
 		this.init = 0;
 		this.elemental = "";
 		this.items = [];
-
+		this.current_items = [];
 		this.condition = condition_none;
+	}
+	
+	add_items(item_list) {
+		for (let i of item_list) {
+			this.items.push(i);
+		}
+	}
+	
+	reset() {
+		// reset the items that have dropped
+		this.current_items = [];
+		for (let i of this.items) {
+			this.current_items.push(i);
+		}
+	}
+	
+	pp_item(player) {
+		// Attempts to pickpocket an item.
+		
+		// Note, additional pickpocket attempts are NOT yet implemented. This is a TODO for a future enhancement.
+		
+		// refer to http://kol.coldfront.net/thekolwiki/index.php/Pickpocket for detailed mechanics that this function is based off of.
+		
+		// check for PPonly items.
+		let eligible_items = [];
+		
+		for (let i of this.current_items) {
+			if (i.type == Drop_Type.PPONLY) {
+				eligible_items.push(i);
+			}
+		}
+		
+		if (eligible_items.length > 0) {
+			shuffle_array(eligible_items);
+			for (let i = 0; i < eligible_items.length; ++i) {
+				if (eligible_items[i].roll_for_drop(0)) {
+					player.add_item_to_inventory(eligible_items[i].name);
+					// Remove the drop from the current item list.
+					this.current_items.splice(i, 1);
+					return true;
+				}				
+			}
+		}
+		
+		eligible_items = [];
 
+		// Conditional items???? TODO: Verify how conditional items work. For now, assuming that conditional drops CANNOT be pickpocketed.
+		for (let i of this.current_items) {
+			if (i.type != Drop_Type.CONDITIONAL && i.type != Drop_Type.PPONLY) {
+				eligible_items.push(i);
+			}
+		}
+		
+		if (eligible_items.length > 0) {
+			shuffle_array(eligible_items);
+			for (let i = 0; i < eligible_items.length; ++i) {
+				if (eligible_items[i].roll_for_drop(0)) {
+					player.add_item_to_inventory(eligible_items[i].name);
+					// Remove the drop from the current item list.
+					this.current_items.splice(i, 1);
+					return true;
+				}
+			}
+		}
+		
+		return false;		
 	}
 
     drop_items(player) {
 
         // go through and drop items based on item find.
+		
+		let eligible_items = [];
+		
+		for (let i of this.current_items) {
+			if (i.type == Drop_Type.PPONLY) {
+				continue;
+			} else if (i.type == Drop_Type.CONDITIONAL) {
+				if (i.condition.evaluate(player)) {
+					eligible_items.push(i);
+				}
+			} else {
+				eligible_items.push(i);
+			}
+		}
+				
+		// for each item, attempt to drop it.
+		for (let i of eligible_items) {
+			if (i.roll_for_drop(player.item_drop)) {
+				player.add_item_to_inventory(i.name);
+				// For simulation speed purposes, assume that we won't be looking at the item list again in the future.
+				// Uncomment below if we do.
+				// var i = this.current_items.indexOf(eligible_items[ri]);
+				// this.current_items.splice(i, 1);
+			}
+		}
+		
+		// TODO: SLIMELING DISGORGING CODE -- sample python code below.
+		/*         if character.familiar.name == "Slimeling":
+            disgorgeList = []
+            for i in availableItems:
+                if "equipment" in i.itemKeywords: disgorgeList.append(i)
+            if len(i) > 0:
+                itemSelected = random.choice(disgorgeList)
+                # NOTE below is being calculated for now. This should be a function of the familiar in question. 
+                slimelingFairyBonus = (55*character.familiar.weight)**0.5 + character.familiar.weight - 3
+                if (itemSelected.rollForDrop(slimelingFairyBonus)):
+                    character.addItemToInventory(itemSelected.name, 1)
+                    availableItems.remove(itemSelected)
+		*/
 
     }
-
 
     do(zone, player) {
         zone.turn_count += 1;
@@ -113,6 +240,17 @@ class Zone {
 
         this.cq = [];
         this.ncq = [];
+		
+		// reset each encounter if needed.
+		for (let e of this.c_list) {
+			e.reset();
+		}
+		for (let e of this.nc_list) {
+			e.reset();
+		}
+		for (let e of this.sl_list) {
+			e.reset();
+		}
 	}
 
     add_encounters(e_list) {
