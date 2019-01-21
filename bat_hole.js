@@ -1,4 +1,4 @@
-let number_simulations = 30000;
+let number_simulations = 5000;
 
 let p = new Player();
 
@@ -157,6 +157,11 @@ var run_sim = function() {
 					quest_turns += 1;
 					p.add_item_to_inventory("enchanted bean", 1);
 					p.add_item_to_inventory("sonar-in-a-biscuit", 1);
+				} else if ("hugs and kisses" in p.inventory) {
+					p.add_item_to_inventory("hugs and kisses", -1);
+					p.pp |= PP_Type.XO_SKELETON;
+					beanbat_chamber.pick_adventure(p);
+					p.pp &= ~PP_Type.XO_SKELETON;					
 				} else {
 					beanbat_chamber.pick_adventure(p);
 				}
@@ -235,8 +240,18 @@ let yellow_ray = {
     },
 }
 
-let scenarios = [basecase, clover_1, clover_2, clover_YR, yellow_ray];
+// Scenario 6:
+let clover_1xo = {
+    name: "Clover + 1 XO",
+    reset: function() {
+        p.reset();
+        p.add_item_to_inventory("ten-leaf clover", 1);
+		p.add_item_to_inventory("hugs and kisses", 1);	 // This is a HACK!
+    },
+}
 
+
+let scenarios = [basecase, clover_1, clover_2, clover_YR, yellow_ray, clover_1xo];
 
 let values_turns = [];
 let total_turns = 0;
@@ -268,7 +283,7 @@ let item_max = 7;
 let item_step = 0.5;
 let num_item_steps = Math.ceil(item_max / item_step);
 let avg_turn_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(scenarios.length).fill(0));
-let avg_turn_savings_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(4).fill(0));
+let avg_turn_savings_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(5).fill(0));
 let bh_map = new Map();
 
 var simulate_bh_table = function(num_trials = number_simulations) {
@@ -310,10 +325,10 @@ var simulate_bh_table = function(num_trials = number_simulations) {
 	
 	
 	// Create resource savings table
-	
-	col_names = ["Item Drop", "First clover", "Second clover", "YR (1 clover)", "YR (no clovers)"];
-	
 	// Note, if we add more scenarios, need to manually adjust this since we're comparing different columns.
+	
+	col_names = ["Item Drop", "First clover", "Second clover", "YR (1 clover)", "YR (no clovers)", "XO Hug (after clover)"];
+	
 	let base_scenario = 0;
 	let compare_scenario = 0;
 	let savings_index = 0;
@@ -344,6 +359,14 @@ var simulate_bh_table = function(num_trials = number_simulations) {
 	// compare YR to base.
 	base_scenario = 0;
 	compare_scenario = 4;
+	for (let i = 0; i < avg_turn_array.length; i += 1) {		
+		avg_turn_savings_array[i][savings_index] = Math.round(100 * (avg_turn_array[i][base_scenario] - avg_turn_array[i][compare_scenario])) / 100;		
+	}
+	savings_index += 1;
+	
+	// compare XO Hug with 1 clover.
+	base_scenario = 1;
+	compare_scenario = 5;
 	for (let i = 0; i < avg_turn_array.length; i += 1) {		
 		avg_turn_savings_array[i][savings_index] = Math.round(100 * (avg_turn_array[i][base_scenario] - avg_turn_array[i][compare_scenario])) / 100;		
 	}

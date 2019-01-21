@@ -52,7 +52,7 @@ function prettify(num, decimals = 2) {
     return Math.round(f * num) / f;
 }
 // FUNCTIONS TO CREATE HTML TABLES /////////////
-
+//var h_save;
 function create_table(tdata, trow = [], tcolumn = [], id_name = "", reverse_bg = false) {
 	let h = "<table>";
 
@@ -95,4 +95,6 @@ function create_table(tdata, trow = [], tcolumn = [], id_name = "", reverse_bg =
 	}
 	h += "</table>"
 	document.getElementById(id_name).innerHTML = h;
+	//h_save = JSON.stringify(h);
+	// console.log(JSON.stringify(h));
 }
