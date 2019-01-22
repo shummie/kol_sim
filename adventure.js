@@ -153,8 +153,8 @@ class Encounter {
 			// check for PPonly items.
 			let eligible_items = [];
 			
-			for (let i of this.current_items) {
-				if (i.type == Drop_Type.PPONLY) {
+			for (let i = 0; i < this.current_items.length; ++i) {			
+				if (this.current_items[i].type == Drop_Type.PPONLY) {
 					eligible_items.push(i);
 				}
 			}
@@ -162,10 +162,10 @@ class Encounter {
 			if (eligible_items.length > 0) {
 				shuffle_array(eligible_items);
 				for (let i = 0; i < eligible_items.length; ++i) {
-					if (eligible_items[i].roll_for_drop(0)) {
-						player.add_item_to_inventory(eligible_items[i].name);
+					if (this.current_items[eligible_items[i]].roll_for_drop(0)) {
+						player.add_item_to_inventory(this.current_items[eligible_items[i]].name);
 						// Remove the drop from the current item list.
-						this.current_items.splice(i, 1);
+						this.current_items.splice(eligible_items[i], 1);
 						break;
 					}				
 				}
@@ -174,8 +174,8 @@ class Encounter {
 			eligible_items = [];
 
 			// Conditional items???? TODO: Verify how conditional items work. For now, assuming that conditional drops CANNOT be pickpocketed.
-			for (let i of this.current_items) {
-				if (i.type != Drop_Type.CONDITIONAL && i.type != Drop_Type.PPONLY) {
+			for (let i = 0; i < this.current_items.length; ++i) {
+				if (this.current_items[i].type != Drop_Type.CONDITIONAL && this.current_items[i].type != Drop_Type.PPONLY) {
 					eligible_items.push(i);
 				}
 			}
@@ -183,10 +183,10 @@ class Encounter {
 			if (eligible_items.length > 0) {
 				shuffle_array(eligible_items);
 				for (let i = 0; i < eligible_items.length; ++i) {
-					if (eligible_items[i].roll_for_drop(0)) {
-						player.add_item_to_inventory(eligible_items[i].name);
+					if (this.current_items[eligible_items[i]].roll_for_drop(0)) {
+						player.add_item_to_inventory(this.current_items[eligible_items[i]].name);
 						// Remove the drop from the current item list.
-						this.current_items.splice(i, 1);
+						this.current_items.splice(eligible_items[i], 1);
 						break;
 					}
 				}
@@ -327,7 +327,7 @@ class Zone {
     }
 
     // https://cdn.discordapp.com/attachments/466966826165731328/475465031161479168/Encounter_Hierarchy_.png
-	pick_adventure(player) {
+	pick_adventure(player, do_adv = true) {
 
         // Ignores hard-coded adventures, wandering adventures, clover adventures, and semi-rare adventures.
         let possible_encounters = [];
@@ -345,7 +345,7 @@ class Zone {
             // 1-2. Conditions satisfied? Randomly select with equal chance all SLs w/ conditions satisfied.
             if (possible_encounters.length > 0) {
                 selected_encounter = possible_encounters[Math.floor(xrand.next_uniform() * possible_encounters.length)];
-                selected_encounter.do(this, player);
+                if (do_adv) selected_encounter.do(this, player);
                 return selected_encounter;
             }
         }
@@ -390,7 +390,7 @@ class Zone {
 						if (this.ncq.length > 5) {
 							this.ncq.shift();
 						}
-                        selected_encounter.do(this, player);
+                        if (do_adv) selected_encounter.do(this, player);
                         return selected_encounter;
                     }
 
@@ -445,7 +445,7 @@ class Zone {
 				if (this.cq.length > 5) {
 					this.cq.shift();
 				}
-                selected_encounter.do(this, player);
+                if (do_adv) selected_encounter.do(this, player);
                 return selected_encounter;
             }
             // else, if we're here, the combat got rejected, reroll (75% chance)
