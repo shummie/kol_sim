@@ -44,7 +44,12 @@ You can clover at guano junction to get 2 sonar-in-a-biscuit.<p>
 If farming sonars, the batrat has the highest zone drop rate of 15%<p>
 You can yellow ray the beanbat to get both the enchanted bean and the sonar<p>
 
-By using a clover, and a yellow ray, you can open up the boss bat chamber in 2 turns. Whether this is a good use of resources is up to you, but the analysis below can help inform that decision.<br>
+By using a clover, and a yellow ray, you can open up the boss bat chamber in 2 turns. Whether this is a good use of resources is up to you, but the analysis below can help inform that decision.<p>
+
+Another strategy instead of using a yellow ray, is to use an XO Skeleton, and then Hugs and Kisses! on the enchanted beanbat. This has a 50% chance of yielding a sonar-in-a-biscuit. If the attempt fails, then you can Cleesh the beanbat, then macrometeorite the monster to get an enchanted beanbat again. <br>
+Note: The expected turns savings is going to be the same for each subsequent XO/Meteorite combo since it doesn't take a turn. In other words, the first XO Hug will save Y turns, if it fails, the decision to use XO/Meteorite means you are valuing the next XO/Meteorite at the same Y turn value.
+</i> 
+
 
 <p>
 
@@ -64,8 +69,9 @@ The simulation takes the following steps to complete the quest:<br>
 			</ul>
 			<li>No enchanted bean</li>
 			<ul>
-			<li>Yellow Ray available? YR a beanbat</li>
-			<li>No YR? Adventure at beanbat chamber</li>
+			<li>XO/Meteorite? Attempt to steal sonar</li>
+			<li>Yellow Ray available? YR a beanbat</li>			
+			<li>No YR or XO/Meteorite? Adventure at beanbat chamber</li>
 			</ul>
 		</ol>
 	</li>
@@ -105,8 +111,20 @@ The simulation takes the following steps to complete the quest:<br>
 	<span id = "resource_value_table"></span>
 	</div>
 </div>
+<p>
+<hr>
+<i><b>With Moxie Pickpocketing</b></i>
+<div class = "table_container">
+	<div id = "table_left" style="float:left; width: 50%">
+	<b><u>Item Drop% & Expected Turns to Complete by Scenario</u></b>
+	<span id = "if_turn_table_pp"></span>
+	</div>
 
-
+	<div id = "table_right" style="float:right; width: 50%">
+	<b><u>Turns saved with each resource</u></b>
+	<span id = "resource_value_table_pp"></span>
+	</div>
+</div>
 
 <hr>
 
@@ -127,6 +145,17 @@ Yellow Ray?:
 <option value = "Yes">Yes</option>
 </select>
 <br>
+XO Hugs Allocated (Macrometeorite uses = # - 1):
+<select id = "num_xo">
+<option value = 0>0</option>
+<option value = 1>1</option>
+<option value = 2>2</option>
+<option value = 3>3</option>
+<option value = 4>4</option>
+<option value = 5>5</option>
+</select>
+<br>
+
 Number of Simulations (recommend at least 100 000 but less than 1 000 000):
 <input id = "dist_num_sims" type = "text" value = 100000>
 <br>
@@ -147,7 +176,7 @@ In-run Stench Resistance
 <li>Knob Goblin harem veil from the Harem</li>
 </ul>
 <p>
-Standard sources of +item find may be useful as well
+Standard sources of +item find will be useful as well
 <p>
 <b>Familiar Strategy</b>
 <br>
@@ -159,6 +188,12 @@ May want to use a lep familiar at the Boss Bat for extra meat.
 <a href="http://kol.coldfront.net/thekolwiki/index.php/The_Bat_Hole">KoL Wiki - The Bat Hole</a>
 <br>
 <br>
+
+<br>
+<i>Last updated on January 21, 2019</i><br>
+<i>Charts generated with <span id="page_sims">0</span> simulations.</i><br>
+<i>Time to simulate and load page: <span id="page_load_time">0.0</span> s.</i>
+
 <!-- <script type="text/javascript" src="underscore-min.js"></script> -->
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="https://d3js.org/d3-array.v2.min.js"></script>
@@ -166,8 +201,5 @@ May want to use a lep familiar at the Boss Bat for extra meat.
 <script type="text/javascript" src="helper_functions.js"></script>
 <script type="text/javascript" src="adventure.js"></script>
 <script type="text/javascript" src="bat_hole.js"></script>
-<br>
-<i>Last updated on January 21, 2019</i>
-
 </body>
 </html>

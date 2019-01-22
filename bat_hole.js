@@ -1,5 +1,6 @@
-let number_simulations = 30000;
-
+let number_simulations = 5000;
+let page_load_start = performance.now();
+document.getElementById("page_sims").innerHTML = number_simulations;
 let p = new Player();
 
 
@@ -157,6 +158,20 @@ var run_sim = function() {
 					quest_turns += 1;
 					p.add_item_to_inventory("enchanted bean", 1);
 					p.add_item_to_inventory("sonar-in-a-biscuit", 1);
+				} else if ("hugs and kisses" in p.inventory) {					
+					p.add_item_to_inventory("hugs and kisses", -1);
+					p.pp |= PP_Type.XO_SKELETON;
+					let adv = beanbat_chamber.pick_adventure(p, false);
+					adv.pp_item(p);
+					
+					while ("macrometeorite" in p.inventory && zones_opened < 3 && !("sonar-in-a-biscuit" in p.inventory)) {
+						adv.reset(); // In reality, we should reroll, but to speed this up, there's only one encounter anyway.
+						adv.pp_item(p);						
+						p.add_item_to_inventory("macrometeorite", -1);
+					} 
+					p.pp &= ~PP_Type.XO_SKELETON;					
+					adv.drop_items(p);
+					beanbat_chamber.turn_count++;
 				} else {
 					beanbat_chamber.pick_adventure(p);
 				}
@@ -235,8 +250,39 @@ let yellow_ray = {
     },
 }
 
-let scenarios = [basecase, clover_1, clover_2, clover_YR, yellow_ray];
+// Scenario 6:
+let clover_1xo = {
+    name: "Clover + 1 XO",
+    reset: function() {
+        p.reset();
+        p.add_item_to_inventory("ten-leaf clover", 1);
+		p.add_item_to_inventory("hugs and kisses", 1);	 // This is a HACK!
+    },
+}
 
+// Scenario 7:
+let clover_2xo = {
+    name: "Clover + 2 XO + 1 MM",
+    reset: function() {
+        p.reset();
+        p.add_item_to_inventory("ten-leaf clover", 1);
+		p.add_item_to_inventory("hugs and kisses", 2);	 // This is a HACK!
+		p.add_item_to_inventory("macrometeorite", 1);	 // This is a HACK!
+    },
+}
+
+// Scenario 8:
+let clover_3xo = {
+    name: "Clover + 3 XO + 2 MM",
+    reset: function() {
+        p.reset();
+        p.add_item_to_inventory("ten-leaf clover", 1);
+		p.add_item_to_inventory("hugs and kisses", 3);	 // This is a HACK!
+		p.add_item_to_inventory("macrometeorite", 2);	 // This is a HACK!
+    },
+}
+
+let scenarios = [basecase, clover_1, clover_2, clover_YR, yellow_ray, clover_1xo];
 
 let values_turns = [];
 let total_turns = 0;
@@ -268,10 +314,10 @@ let item_max = 7;
 let item_step = 0.5;
 let num_item_steps = Math.ceil(item_max / item_step);
 let avg_turn_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(scenarios.length).fill(0));
-let avg_turn_savings_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(4).fill(0));
+let avg_turn_savings_array = new Array(num_item_steps + 1).fill(0).map(() => new Array(5).fill(0));
 let bh_map = new Map();
 
-var simulate_bh_table = function(num_trials = number_simulations) {
+var simulate_bh_table = function(num_trials = number_simulations, table_suffix = "") {
 	// Simulates for each scenario, and item drop %, the average number of turns to complete the bat hole quest.
 	
 	let t0 = performance.now();
@@ -306,14 +352,14 @@ var simulate_bh_table = function(num_trials = number_simulations) {
 		row_names.push(Math.round(i * item_step * 100) + "%");
 	}
 
-	create_table(avg_turn_array, row_names, col_names, "if_turn_table");
+	create_table(avg_turn_array, row_names, col_names, "if_turn_table" + table_suffix);
 	
 	
 	// Create resource savings table
-	
-	col_names = ["Item Drop", "First clover", "Second clover", "YR (1 clover)", "YR (no clovers)"];
-	
 	// Note, if we add more scenarios, need to manually adjust this since we're comparing different columns.
+	
+	col_names = ["Item Drop", "First clover", "Second clover", "YR (1 clover)", "YR (no clovers)", "XO Hug (after clover)"];
+	
 	let base_scenario = 0;
 	let compare_scenario = 0;
 	let savings_index = 0;
@@ -349,11 +395,20 @@ var simulate_bh_table = function(num_trials = number_simulations) {
 	}
 	savings_index += 1;
 	
-	create_table(avg_turn_savings_array, row_names, col_names, "resource_value_table");	
+	// compare XO Hug with 1 clover.
+	base_scenario = 1;
+	compare_scenario = 5;
+	for (let i = 0; i < avg_turn_array.length; i += 1) {		
+		avg_turn_savings_array[i][savings_index] = Math.round(100 * (avg_turn_array[i][base_scenario] - avg_turn_array[i][compare_scenario])) / 100;		
+	}
+	savings_index += 1;
+	
+	create_table(avg_turn_savings_array, row_names, col_names, "resource_value_table" + table_suffix);	
 }
 
 simulate_bh_table(number_simulations);
-
+p.pp |= PP_Type.NORMAL;
+simulate_bh_table(number_simulations, "_pp");
 
 // Populate a dropdown programmatically...
 let iddd_html = "Item drop modifier: <select id = 'id_dropdown_value'>";
@@ -375,6 +430,7 @@ function bh_run_dist_analysis() {
 	let nt = Number(document.getElementById("dist_num_sims").value);
 	let use_yr = document.getElementById("use_yr").value;
 	let num_clovers = document.getElementById("num_clovers").value;
+	let num_xo = document.getElementById("num_xo").value;
 	
 	let custom_scenario = {
 		name: "Custom Scenario",
@@ -384,6 +440,10 @@ function bh_run_dist_analysis() {
 				p.add_item_to_inventory("yellow ray", 1);
 			}
 			p.add_item_to_inventory("ten-leaf clover", num_clovers);
+			p.add_item_to_inventory("hugs and kisses", num_xo);
+			if (num_xo > 1) {
+				p.add_item_to_inventory("macrometeorite", num_xo - 1);	
+			}
 		},
 	}
 
@@ -428,3 +488,6 @@ function bh_run_dist_analysis() {
 
 	console.log("sf_run_dist_analysis @ " + nt + " took " + (t1 - t0) + " ms.");
 }
+
+let page_load_end = performance.now();
+document.getElementById("page_load_time").innerHTML = prettify((page_load_end - page_load_start) / 1000);

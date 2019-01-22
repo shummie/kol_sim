@@ -11,6 +11,23 @@ var Drop_Type = {
 }
 
 
+// Uses BITSHIFTS to determine PP Types available.
+// To add a PP Type: player.pp |= PP_Type.XO_SKELETON
+// To check for a PP Type: ((player.pp & PP_Type.XO_SKELETON) >> PP_Type.XO_SKELETON) == 1;
+
+var PP_Type = {
+	NONE: 0,
+	NORMAL: 1,
+	XO_SKELETON: 2,
+	TEST: 4,
+}
+
+var PP_Shift = {
+	NORMAL: 0,
+	XO_SKELETON: 1,
+	TEST: 2,
+}
+
 var condition_delay = {
     delay : 0,
     evaluate : function(zone, player) {
@@ -61,10 +78,11 @@ class Player {
 		this.meat_drop = 0;
 		this.init = 0;
 		this.inventory = {};
+		this.pp = PP_Type.NONE;
 	}
 	
 	reset() {
-		this.inventory = {};
+		this.inventory = {};		
 	}
 	
 	add_item_to_inventory(name, count = 1) {
@@ -120,53 +138,87 @@ class Encounter {
 		
 		// refer to http://kol.coldfront.net/thekolwiki/index.php/Pickpocket for detailed mechanics that this function is based off of.
 		
-		// check for PPonly items.
-		let eligible_items = [];
+		// Note, this will "perform" all possible pickpocketing functions. So for example, a moxie class can pickpocket and then use an XO skeleton hug. This function will attempt to do both.
 		
-		for (let i of this.current_items) {
-			if (i.type == Drop_Type.PPONLY) {
-				eligible_items.push(i);
-			}
+		if (player.pp == PP_Type.NONE) {
+			// Maybe make an exception? If we're specifically using an item to call this?...
+			return;
 		}
 		
-		if (eligible_items.length > 0) {
-			shuffle_array(eligible_items);
-			for (let i = 0; i < eligible_items.length; ++i) {
-				if (eligible_items[i].roll_for_drop(0)) {
-					player.add_item_to_inventory(eligible_items[i].name);
-					// Remove the drop from the current item list.
-					this.current_items.splice(i, 1);
-					return true;
-				}				
-			}
-		}
+		// The types of PP should be set in priority order since the function just goes linearly from here.
 		
-		eligible_items = [];
+		// Normal pickpocketing.
+		if ((player.pp & PP_Type.NORMAL) >> PP_Shift.NORMAL) {		
+			
+			// check for PPonly items.
+			let eligible_items = [];
+			
+			for (let i = 0; i < this.current_items.length; ++i) {			
+				if (this.current_items[i].type == Drop_Type.PPONLY) {
+					eligible_items.push(i);
+				}
+			}
+			
+			if (eligible_items.length > 0) {
+				shuffle_array(eligible_items);
+				for (let i = 0; i < eligible_items.length; ++i) {
+					if (this.current_items[eligible_items[i]].roll_for_drop(0)) {
+						player.add_item_to_inventory(this.current_items[eligible_items[i]].name);
+						// Remove the drop from the current item list.
+						this.current_items.splice(eligible_items[i], 1);
+						break;
+					}				
+				}
+			}
+			
+			eligible_items = [];
 
-		// Conditional items???? TODO: Verify how conditional items work. For now, assuming that conditional drops CANNOT be pickpocketed.
-		for (let i of this.current_items) {
-			if (i.type != Drop_Type.CONDITIONAL && i.type != Drop_Type.PPONLY) {
-				eligible_items.push(i);
+			// Conditional items???? TODO: Verify how conditional items work. For now, assuming that conditional drops CANNOT be pickpocketed.
+			for (let i = 0; i < this.current_items.length; ++i) {
+				if (this.current_items[i].type != Drop_Type.CONDITIONAL && this.current_items[i].type != Drop_Type.PPONLY) {
+					eligible_items.push(i);
+				}
 			}
-		}
-		
-		if (eligible_items.length > 0) {
-			shuffle_array(eligible_items);
-			for (let i = 0; i < eligible_items.length; ++i) {
-				if (eligible_items[i].roll_for_drop(0)) {
-					player.add_item_to_inventory(eligible_items[i].name);
-					// Remove the drop from the current item list.
-					this.current_items.splice(i, 1);
-					return true;
+			
+			if (eligible_items.length > 0) {
+				shuffle_array(eligible_items);
+				for (let i = 0; i < eligible_items.length; ++i) {
+					if (this.current_items[eligible_items[i]].roll_for_drop(0)) {
+						player.add_item_to_inventory(this.current_items[eligible_items[i]].name);
+						// Remove the drop from the current item list.
+						this.current_items.splice(eligible_items[i], 1);
+						break;
+					}
 				}
 			}
 		}
+		// End of normal pickpocketing code.
 		
-		return false;		
+		// XO SKELETON pickpocketing.		
+		if ((player.pp & PP_Type.XO_SKELETON) >> PP_Shift.XO_SKELETON) {			
+			// Hugs and Kisses
+			// http://kol.coldfront.net/thekolwiki/index.php/Hugs_and_Kisses!
+			// Basically, a random eligible item is selected and dropped.
+			let eligible_items = [];
+			
+			// Conditional items???? TODO: Verify how conditional items work. For now, assuming that conditional drops CANNOT be pickpocketed.
+			for (let i = 0; i < this.current_items.length; ++i) {
+				if (this.current_items[i].type != Drop_Type.CONDITIONAL && this.current_items[i].type != Drop_Type.PPONLY) {
+					eligible_items.push(i);
+				}
+			}
+						
+			if (eligible_items.length > 0) {
+				shuffle_array(eligible_items);
+				player.add_item_to_inventory(this.current_items[eligible_items[0]].name);
+				this.current_items.splice(eligible_items[0], 1);
+			}
+		}
+		// end of XO Skeleton pickpocketing.
 	}
 
     drop_items(player) {
-
+		
         // go through and drop items based on item find.
 		
 		let eligible_items = [];
@@ -189,6 +241,7 @@ class Encounter {
 				player.add_item_to_inventory(i.name);
 				// For simulation speed purposes, assume that we won't be looking at the item list again in the future.
 				// Uncomment below if we do.
+				// The below code actually isn't correct. Look at XO Skeleton to fix.
 				// var i = this.current_items.indexOf(eligible_items[ri]);
 				// this.current_items.splice(i, 1);
 			}
@@ -212,6 +265,11 @@ class Encounter {
 
     do(zone, player) {
         zone.turn_count += 1;
+		// Attempt to pickpocket. Only for combat encounters.
+		// Combat superlikely encounters should have custom code?
+		if (this.type == Encounter_Type.COMBAT) {
+			this.pp_item(player);
+		}
         // by default drop items. add this code in later...?
         this.drop_items(player);
     }
@@ -269,7 +327,7 @@ class Zone {
     }
 
     // https://cdn.discordapp.com/attachments/466966826165731328/475465031161479168/Encounter_Hierarchy_.png
-	pick_adventure(player) {
+	pick_adventure(player, do_adv = true) {
 
         // Ignores hard-coded adventures, wandering adventures, clover adventures, and semi-rare adventures.
         let possible_encounters = [];
@@ -287,7 +345,7 @@ class Zone {
             // 1-2. Conditions satisfied? Randomly select with equal chance all SLs w/ conditions satisfied.
             if (possible_encounters.length > 0) {
                 selected_encounter = possible_encounters[Math.floor(xrand.next_uniform() * possible_encounters.length)];
-                selected_encounter.do(this, player);
+                if (do_adv) selected_encounter.do(this, player);
                 return selected_encounter;
             }
         }
@@ -332,7 +390,7 @@ class Zone {
 						if (this.ncq.length > 5) {
 							this.ncq.shift();
 						}
-                        selected_encounter.do(this, player);
+                        if (do_adv) selected_encounter.do(this, player);
                         return selected_encounter;
                     }
 
@@ -387,7 +445,7 @@ class Zone {
 				if (this.cq.length > 5) {
 					this.cq.shift();
 				}
-                selected_encounter.do(this, player);
+                if (do_adv) selected_encounter.do(this, player);
                 return selected_encounter;
             }
             // else, if we're here, the combat got rejected, reroll (75% chance)
